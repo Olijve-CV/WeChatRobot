@@ -11,6 +11,7 @@ from wcferry import Wcf, WxMsg
 
 from configuration import Config
 from func_chatgpt import ChatGPT
+from func_deepseek import ChatDeepSeek
 from func_chengyu import cy
 from func_news import News
 from func_tigerbot import TigerBot
@@ -36,6 +37,8 @@ class Robot(Job):
             self.chat = ChatGPT(cgpt.get("key"), cgpt.get("api"), cgpt.get("proxy"), cgpt.get("prompt"))
         elif self.config.XINGHUO_WEB:
             self.chat = XinghuoWeb(self.config.XINGHUO_WEB)
+        elif self.config.DEEPSEEK:
+            self.chat = ChatDeepSeek(self.config)
         else:
             self.chat = None
 
@@ -112,7 +115,8 @@ class Robot(Job):
                 self.toAt(msg)
 
             else:                # 其他消息
-                self.toChengyu(msg)
+                # self.toChengyu(msg)
+                self.toChitchat(msg)  # 闲聊
 
             return  # 处理完群聊信息，后面就不需要处理了
 
@@ -134,7 +138,7 @@ class Robot(Job):
 
     def onMsg(self, msg: WxMsg) -> int:
         try:
-            self.LOG.info(msg)  # 打印信息
+            self.LOG.info("onMsg: %s", msg)  # 打印信息
             self.processMsg(msg)
         except Exception as e:
             self.LOG.error(e)

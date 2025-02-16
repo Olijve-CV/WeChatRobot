@@ -13,7 +13,7 @@ class TigerBot():
         self.tburl = "https://api.tigerbot.com/bot-service/ai_service/gpt"
         self.tbheaders = {"Authorization": "Bearer " + tbconf["key"]}
         self.tbmodel = tbconf["model"]
-        self.fallback = ["滚", "快滚", "赶紧滚"]
+        self.fallback = ["稍等", "休息中"]
 
     def get_answer(self, msg: str, sender: str = None) -> str:
         payload = {

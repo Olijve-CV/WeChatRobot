@@ -2,42 +2,53 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
+import requests
 
-import openai
+class ChatDeepSeek():
 
+    api_url = 'https://api.deepseek.com/chat/completions'
 
-class ChatGPT():
-
-    def __init__(self, key: str, api: str, proxy: str, prompt: str) -> None:
-        openai.api_key = key
+    def __init__(self, config) -> None:
         # 自己搭建或第三方代理的接口
-        openai.api_base = api
-        if proxy:
-            openai.proxy = {"http": "http://" + proxy, "https": "https://" + proxy}
+        self.max_tokens = config.get("max_tokens")
+        self.temperature = config.get("temperature")
         self.conversation_list = {}
-        self.system_content_msg = {"role": "system", "content": prompt}
+        self.headers = {
+            'Authorization': f'Bearer {config.get("apikey")}',
+            'Content-Type': 'application/json'
+        }
+        self.system_content_msg = {"role": "system", "content": config.get("prompt")}
+        print(self.headers)
 
     def get_answer(self, question: str, wxid: str) -> str:
         # wxid或者roomid,个人时为微信id，群消息时为群id
         self.updateMessage(wxid, question, "user")
 
         try:
-            ret = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=self.conversation_list[wxid],
-                temperature=0.2
-            )
+            data = {
+                'model': 'deepseek-chat',  # 假设使用的模型名称
+                'messages': [
+                    {'role': 'system', 'content': 'You are a helpful assistant.'},  # 系统提示
+                    {'role': 'user', 'content': question}  # 用户输入
+                ],
+                'max_tokens': self.max_tokens,  # 生成的最大 token 数
+                'temperature': self.temperature  # 控制生成文本的随机性
+            }
+            # 发送 POST 请求
+            response = requests.post(self.api_url, headers=self.headers, json=data)
 
-            rsp = ret["choices"][0]["message"]["content"]
-            rsp = rsp[2:] if rsp.startswith("\n\n") else rsp
-            rsp = rsp.replace("\n\n", "\n")
-            self.updateMessage(wxid, rsp, "assistant")
-        except openai.error.AuthenticationError as e3:
-            rsp = "OpenAI API 认证失败，请检查 API 密钥是否正确"
-        except openai.error.APIConnectionError as e2:
-            rsp = "无法连接到 OpenAI API，请检查网络连接"
-        except openai.error.APIError as e1:
-            rsp = "OpenAI API 返回了错误：" + str(e1)
+            # 检查响应状态码
+            if response.status_code == 200:
+                # 解析响应内容
+                result = response.json()
+                # 提取生成的对话回复
+                reply = result['choices'][0]['message']['content']
+                self.updateMessage(wxid, reply, "assistant")
+                print('Assistant:', reply)
+            else:
+                print(f'Error: {response.status_code}')
+                print(response.text)
+
         except Exception as e0:
             rsp = "发生未知错误：" + str(e0)
 
@@ -77,16 +88,10 @@ class ChatGPT():
 
 if __name__ == "__main__":
     from configuration import Config
-    config = Config().CHATGPT
+    config = Config().DEEPSEEK
     if not config:
         exit(0)
-
-    key = config.get("key")
-    api = config.get("api")
-    proxy = config.get("proxy")
-    prompt = config.get("prompt")
-
-    chat = ChatGPT(key, api, proxy, prompt)
+    chat = ChatDeepSeek(config)
 
     while True:
         q = input(">>> ")
