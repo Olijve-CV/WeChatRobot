@@ -26,7 +26,7 @@ class ChatDeepSeek():
 
         try:
             data = {
-                'model': 'deepseek-chat',  # 假设使用的模型名称
+                'model': 'DeepSeek-R1',  # 假设使用的模型名称
                 'messages': [
                     {'role': 'system', 'content': 'You are a helpful assistant.'},  # 系统提示
                     {'role': 'user', 'content': question}  # 用户输入
@@ -45,9 +45,11 @@ class ChatDeepSeek():
                 reply = result['choices'][0]['message']['content']
                 self.updateMessage(wxid, reply, "assistant")
                 print('Assistant:', reply)
+                rsp = reply
             else:
                 print(f'Error: {response.status_code}')
                 print(response.text)
+                rsp = response.text
 
         except Exception as e0:
             rsp = "发生未知错误：" + str(e0)
