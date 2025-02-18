@@ -5,15 +5,17 @@ from datetime import datetime
 
 import openai
 
-
+import os
+os.environ['HTTP_PROXY'] = 'http://127.0.0.1:7890'
+os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:7890'
 class ChatGPT():
 
     def __init__(self, key: str, api: str, proxy: str, prompt: str) -> None:
         openai.api_key = key
         # 自己搭建或第三方代理的接口
         openai.api_base = api
-        if proxy:
-            openai.proxy = {"http": "http://" + proxy, "https": "https://" + proxy}
+        # if proxy:
+        #     openai.proxy = {"http": "http://" + proxy, "https": "http://" + proxy}
         self.conversation_list = {}
         self.system_content_msg = {"role": "system", "content": prompt}
 
